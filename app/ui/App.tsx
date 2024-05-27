@@ -119,19 +119,14 @@ const styles = StyleSheet.create({
 export default App;
 */
 
-import React from 'react';
-import {Text, View} from 'react-native';
+// App.tsx
 
-const HelloWorldApp = () => {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
-      <Text>Hello, world!</Text>
-    </View>
-  );
-};
-export default HelloWorldApp;
+import React from 'react';
+import AppNavigator from '../navigation/Navigation';
+
+const App = () => {
+  return <AppNavigator />;
+}
+
+export default App;
+
