@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet, Image, TouchableOpacity, GestureResponderEvent, ImageBackground } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/Navigation'; // Adjust the path if necessary
+import { RootStackParamList } from '../app/navigation/Navigation'; // Adjust the path if necessary
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
