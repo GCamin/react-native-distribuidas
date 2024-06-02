@@ -21,7 +21,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       <Text style={styles.title}>Home Page</Text>
       <TouchableOpacity onPress={handlePress}>
         <Image
-          source={require('../../assets/images/poor-things.jpeg')}
+          source={require('../../assets/images/poor-things.png')}
           style={styles.image}
         />
       </TouchableOpacity>
