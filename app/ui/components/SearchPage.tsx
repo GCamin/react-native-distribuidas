@@ -1,15 +1,20 @@
-// src/HomeScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground, FlatList, ListRenderItem } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/Navigation'; // Adjust the path if necessary
 import PlayButton from '../../assets/svg/PlayHome.svg'; // Direct import of SVG
 import AnioDuracion from '../../assets/svg/Anio-Duracion.svg';
-import Generos from '../../assets/svg/Generos.svg';
-import FavIcon from '../../assets/svg/Fav-icon.svg';
-import SearchIcon from '../../assets/svg/Search-icon.svg';
+import FechaIcon from '../../assets/svg/Fecha-icon.svg';
+import FechaIconAsc from '../../assets/svg/Fecha-icon-asc.svg';
+import FechaIconDesc from '../../assets/svg/Fecha-icon-desc.svg';
+import CalificacionIcon from '../../assets/svg/Calificacion-icon.svg';
+import CalificacionIconAsc from '../../assets/svg/Calificacion-icon-asc.svg';
+import CalificacionIconDesc from '../../assets/svg/Calificacion-icon-desc.svg';
+import VolverIcon from '../../assets/svg/Volver-icon.svg';
+import CustomSearchBar from './CustomSearchBar';
+import CustomSearchBar2 from './CustomSearchBar2';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
 
 type Item = {
     id: string;
@@ -40,10 +45,10 @@ const initialData: Item[] = [
     // Add more initial items here if needed
 ];
 
-const genres = ['Acción', 'Aventura', 'Animación', 'Comedia', 'Crimen', 'Documental', 'Drama', 'Familia', 'Fantasía', 'Historia', 'Terror', 'Música', 'Misterio', 'Romance', 'Ciencia Ficción', 'Pelicula de TV', 'Suspense', 'Bélica', 'Western'];
 
-const HomeScreen: React.FC<Props> = ({ navigation }) => {
+const SearchScreen: React.FC<Props> = ({ navigation }) => {
     const [data, setData] = useState<Item[]>(initialData);
+    const [search, setSearch] = useState('');
 
     const handlePress_InfoPeliculaPlay = () => {
         // Handle the press event for the play button
@@ -53,12 +58,12 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         // Handle the press event for the play button
     };
 
-    const handlePress_Profile = () => {
-        // Handle the press event for the play button
+    const handlePress_Calificacion = () => {
+        // Handle the press event for the calificacion button
     };
 
-    const handlePress_FilterGenero = () => {
-        // Handle the press event for the play button
+    const handlePress_Fecha = () => {
+        // Handle the press event for the fecha button
     };
 
     const fetchData = () => {
@@ -79,11 +84,16 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         // Perform any additional updates or actions if necessary
     }, [data]);
 
+    const updateSearch = (text: string) => {
+        setSearch(text);
+        // Implement search functionality here
+    };
+
     const renderItem: ListRenderItem<Item> = ({ item }) => (
         <View style={styles.container}>
             <View style={styles.row}>
                 <Image
-                    source={{uri:item.image}}
+                    source={{ uri: item.image }}
                     style={styles.image}
                 />
                 <View style={styles.textContainer}>
@@ -112,37 +122,25 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return (
         <ImageBackground source={require('../../assets/images/Background.png')} style={styles.background}>
             <View style={styles.topFrame}>
-                <View style={styles.profileContainer}>
-                    <Image
-                        source={require('../../assets/images/profile.jpg')} // Replace with the actual user profile image URL
-                        style={styles.profileImage}
-                    />
-                    <Text style={styles.nickname}>nick_name</Text>
-                </View>
+                <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+                    <VolverIcon style={styles.icon} />
+                </TouchableOpacity>
+            </View>
+            <View style={styles.searchContainer}>
+                <CustomSearchBar/>
+            </View>
+            <View style={styles.middleFrame}>
                 <View style={styles.iconsContainer}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-                        <FavIcon style={styles.icon} />
+                    <TouchableOpacity>
+                        <FechaIcon/>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-                        <SearchIcon style={styles.icon} />
+                </View>
+                <View style={styles.iconsContainer}> 
+                    <TouchableOpacity>
+                        <CalificacionIcon/>
                     </TouchableOpacity>
                 </View>
             </View>
-            <View style={styles.genreListContainer}>
-                <FlatList
-                    data={genres}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity onPress={handlePress_FilterGenero}>
-                            <Generos style={styles.genreItem}/>
-                            <Text style={styles.genreText}>{item}</Text>
-                        </TouchableOpacity>
-                    )}
-                />
-            </View>
-            <Text style={styles.titleHome}>Ultimos Trailers</Text>
             <FlatList
                 data={data}
                 renderItem={renderItem}
@@ -180,7 +178,7 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         textShadowColor: '#101010',
         textShadowRadius: 1,
-        textShadowOffset: {width: 2, height: 2},
+        textShadowOffset: { width: 2, height: 2 },
         marginLeft: 17,
         marginBottom: 10
     },
@@ -255,27 +253,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         marginBottom: 20
     },
-    genreItem: {
-        marginRight: 10,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 20,
-        backgroundColor: '#FEC260',
-    },
-    selectedGenreItem: {
-        backgroundColor: '#FAFAFA',
-    },
-    genreText: {
-        position: 'absolute', // Absolute positioning for text overlay
-        width: '100%', // Ensure text width matches the SVG component
-        textAlign: 'center', // Center-align text
-        fontSize: 16, // Adjust the font size as needed
-        color: '#101010',
-        fontWeight: 'bold',
-        right: 5,
-    },
-    selectedGenreText: {
-        color: '#FEC260',
+    
+    middleFrame: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        marginHorizontal: 10
     },
     topFrame: {
         flexDirection: 'row',
@@ -283,9 +267,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 15,
     },
-    profileContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    searchContainer: {
+        paddingHorizontal: 12,
+        marginBottom: 10
     },
     profileImage: {
         width: 50,
@@ -305,8 +289,16 @@ const styles = StyleSheet.create({
     icon: {
         width: 30,
         height: 30,
-        marginLeft: 15,
+        marginLeft: 0,
     },
+    searchContainerStyle: {
+        borderRadius: 3,
+        borderWidth: 1,
+        borderColor: "#FEC260",
+        backgroundColor: "#3B185F",
+        width: 329
+    }
 });
 
-export default HomeScreen;
+export default SearchScreen;
+
