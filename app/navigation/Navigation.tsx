@@ -5,8 +5,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../ui/components/HomePage'; // Your home screen component
 import SearchScreen from '../ui/components/SearchPage'; // Your splash screen component
 //import LoginScreen from './LoginScreen'; // Your login screen component
-//import ProfilePage from '../ui/components/UserProfile';
-//import ProfilePageEdit from '../ui/components/UserProfileEdit';
+import ProfilePage from '../ui/components/UserProfile';
+import ProfilePageEdit from '../ui/components/UserProfileEdit';
+import Splasher from '../ui/components/Splasher';
+import LoginScreen from '../ui/components/Login';
 
 type RootStackParamList = {
   Splash: undefined;
