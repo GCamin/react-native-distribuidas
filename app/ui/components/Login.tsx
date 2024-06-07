@@ -3,6 +3,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent } from 'react-native';
+import ProfilePage from './UserProfile';
 
 const LoginScreen = ({ navigation }) => {
   function handlePress(event: GestureResponderEvent): void {
@@ -28,7 +29,7 @@ const onGoogleButtonPress = async () => {
     // Navigate to Profile screen on successful login
     navigation.replace('Profile');
   } catch (error) {
-    console.error(error);
+    console.error('Google Sign-In error: ',error);
   }
 };
 

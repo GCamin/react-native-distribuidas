@@ -26,7 +26,7 @@ function AppNavigator() {
   return (
     <NavigationContainer>
       {/* cambiar segun corresponda */}
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName="Profile">
       {/*<Stack.Navigator initialRouteName="Home">*/}
       {/*<Stack.Navigator initialRouteName="Profile">
       {/*<Stack.Navigator initialRouteName="ProfileEdit">*/}
@@ -36,6 +36,7 @@ function AppNavigator() {
       <Stack.Screen name="Splasher" component={Splasher} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfilePage} options={{ headerShown: false }} />
       <Stack.Screen name="ProfileEdit" component={ProfilePageEdit} options={{ headerShown: false }} />
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
         {/*<Stack.Screen name="Home" component={HomeScreen} />*/}
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "987217325015",
+    "project_id": "moviestar-fdc52",
+    "storage_bucket": "moviestar-fdc52.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987217325015:android:77dd85a12fc6aee52d7992",
+        "android_client_info": {
+          "package_name": "com.uade.moviestar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoA64V378SonvpGHixwqOOl_oBXvytZ_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

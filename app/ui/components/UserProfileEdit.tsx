@@ -159,7 +159,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   bottomContainer: {
-    position: 'absolute',
     bottom: 40,
     width: '100%',
     alignItems: 'center',
