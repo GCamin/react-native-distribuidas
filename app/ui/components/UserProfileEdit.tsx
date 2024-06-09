@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../app/navigation/Navigation';
-import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent } from 'react-native';
+import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent, KeyboardAvoidingView, Platform } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
 const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
-  const [profileImage, setProfileImage] = useState(require('../../assets/images/profile-picture.png'));
-  const [nickname, setNickname] = useState('nico_herrera');
-  const [fullName, setFullName] = useState('Nicolas Herrera');
-  const [email, setEmail] = useState('nico_herrera@gmail.com');
+  const profileImageUrl = 'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
+  const [profileImage, setProfileImage] = useState({ uri: profileImageUrl });
+  const [nickname, setNickname] = useState('ana_herrera');
+  const [fullName, setFullName] = useState('Anabelle Herrera');
+  const [email, setEmail] = useState('ana_herrera@gmail.com');
+  const [errors, setErrors] = useState({ nickname: false, fullName: false });
+
   const selectImage = () => {
     launchImageLibrary({}, (response) => {
       if (response.assets && response.assets.length > 0) {
@@ -18,15 +21,39 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
       }
     });
   };
-  function handlePress(event: GestureResponderEvent): void {
-    throw new Error('Function not implemented.');
-}
+
+  const validateFields = () => {
+    let valid = true;
+    let newErrors = { nickname: false, fullName: false };
+
+    if (!nickname) {
+      newErrors.nickname = true;
+      valid = false;
+    }
+    if (!fullName) {
+      newErrors.fullName = true;
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
+  const handleSaveChanges = () => {
+    if (validateFields()) {
+      // Save changes logic here
+    }
+  };
+
   return (
     <ImageBackground
       source={require('../../assets/images/Background.png')}
       style={styles.background}
     >
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         {/* Title */}
         <Text style={styles.title}>Mi perfil</Text>
 
@@ -43,17 +70,21 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
         <View style={styles.form}>
           <Text style={styles.label}>Nickname:</Text>
           <TextInput
-            style={styles.userInfoText}
+            style={[styles.userInfoText, errors.nickname && styles.errorInput]}
             value={nickname}
             onChangeText={setNickname}
             editable={true}
           />
+          {errors.nickname && <Text style={styles.errorText}>Campo Obligatorio</Text>}
+          
           <TextInput
-            style={styles.userInfoText}
+            style={[styles.userInfoText, errors.fullName && styles.errorInput]}
             value={fullName}
             onChangeText={setFullName}
             editable={true}
           />
+          {errors.fullName && <Text style={styles.errorText}>Campo Obligatorio</Text>}
+          
           <TextInput
             style={styles.userInfoBlurText}
             value={email}
@@ -62,14 +93,14 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
         </View>
         <View style={styles.bottomContainer}>
           {/* Buttons */}
-          <TouchableOpacity style={styles.SaveChangesButton}>
+          <TouchableOpacity style={styles.SaveChangesButton} onPress={handleSaveChanges}>
             <Text style={styles.SaveChangesButtonText}>Guardar cambios</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.CancelChangesText}>Cancelar</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
@@ -105,6 +136,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: 150,
     height: 150,
+    borderRadius: 75,
     marginBottom: 20,
   },
   profileImage: {
@@ -152,6 +184,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '100%',
     paddingHorizontal: 40,
+    top: 60,
   },
   label: {
     color: '#FEC260',
@@ -159,9 +192,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   bottomContainer: {
-    bottom: 40,
+    padding: 20,
     width: '100%',
     alignItems: 'center',
+    top: 250,
   },
   SaveChangesButton: {
     backgroundColor: '#A12568',
@@ -184,8 +218,17 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-    resizeMode: 'cover', // Asegura que la imagen cubra todo el fondo
+    resizeMode: 'cover',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 8,
+  },
+  errorInput: {
+    borderColor: 'red',
+    borderWidth: 1,
   },
 });
 
 export default ProfilePageEdit;
+

@@ -8,20 +8,26 @@ import { BlurView } from '@react-native-community/blur';
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfilePage: React.FC<Props> = ({ navigation }) => {
-  const [nickname, setNickname] = useState('nico_herrera');
-  const [fullName, setFullName] = useState('Nicolas Herrera');
-  const [email, setEmail] = useState('nico_herrera@gmail.com');
+  const profileImageUrl = 'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
+  const [profileImage, setProfileImage] = useState({ uri: profileImageUrl });
+  const [nickname, setNickname] = useState('ana_herrera');
+  const [fullName, setFullName] = useState('Anabelle Herrera');
+  const [email, setEmail] = useState('ana_herrera@gmail.com');
   const [isModalVisible, setModalVisible] = useState(false);
+
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
+
   const handleDeleteProfile = () => {
     // Lógica para eliminar el perfil
     toggleModal();
   };
+
   function handlePress(event: GestureResponderEvent): void {
     throw new Error('Function not implemented.');
-}
+  }
+
   return (
     <ImageBackground
       source={require('../../assets/images/Background.png')}
@@ -29,7 +35,7 @@ const ProfilePage: React.FC<Props> = ({ navigation }) => {
     >
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.backButtonContainer} onPress={() => navigation.goBack()}>
-        <Image source={require('../../assets/images/arrow-back.png')} style={styles.backIcon} />
+          <Image source={require('../../assets/images/arrow-back.png')} style={styles.backIcon} />
           <Text style={styles.backButton}>Volver</Text>
         </TouchableOpacity>
       </View>
@@ -39,7 +45,7 @@ const ProfilePage: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.title}>Mi perfil</Text>
 
         {/* Profile Picture */}
-        <Image source={require('../../assets/images/profile-picture.png')} style={styles.profileImage} />
+        <Image source={profileImage} style={styles.profileImage} />
 
         {/* Edit Button */}
         <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('ProfileEdit')}>

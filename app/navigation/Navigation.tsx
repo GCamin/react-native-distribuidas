@@ -25,14 +25,13 @@ function AppNavigator() {
   return (
     <NavigationContainer>
       {/* cambiar segun corresponda */}
-      <Stack.Navigator initialRouteName="Splasher">
+      <Stack.Navigator initialRouteName="Profile">
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }}/>
       <Stack.Screen name="Search" component={SearchScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Splasher" component={Splasher} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfilePage} options={{ headerShown: false }} />
       <Stack.Screen name="ProfileEdit" component={ProfilePageEdit} options={{ headerShown: false }} />
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
