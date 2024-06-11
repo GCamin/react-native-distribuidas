@@ -13,6 +13,7 @@ import CalificacionIconDesc from '../../assets/svg/Calificacion-icon-desc.svg';
 import VolverIcon from '../../assets/svg/Volver-icon.svg';
 import CustomSearchBar from './CustomSearchBar';
 import CustomSearchBar2 from './CustomSearchBar2';
+import { useApiSearchQuery } from '../../redux/SearchApi';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
 
@@ -25,30 +26,26 @@ type Item = {
     image: any;
 };
 
-const initialData: Item[] = [
-    {
-        id: '1',
-        title: 'Pobres Criaturas',
-        description: ' ds sd fads lfksadn ldslf nasdnf sdf asdf gsdfasd s dlk asdkln sdn ksnd kEl Dr. Godwin resucita a la bella Bella Baxter para que aprenda a su lado. Sin embargo, ella huye en compañía de un abogado porque quiere recorrer el mundo, sedienta de deseo de igualdad y libertad.',
-        year: '2023',
-        duration: '120 min',
-        image: 'https://image.tmdb.org/t/p/w500/xi8Iu6qyTfyZVDVy60raIOYJJmk.jpg'
-    },
-    {
-        id: '2',
-        title: 'Pobres Criaturas',
-        description: 'El Dr. Godwin resucita a la bella Bella Baxter para que aprenda a su lado. Sin embargo, ella huye en compañía de un abogado porque quiere recorrer el mundo, sedienta de deseo de igualdad y libertad.',
-        year: '2023',
-        duration: '120 min',
-        image: 'https://image.tmdb.org/t/p/w500/xi8Iu6qyTfyZVDVy60raIOYJJmk.jpg'
-    },
-    // Add more initial items here if needed
-];
+//const initialData: Item[] = [];
 
 
 const SearchScreen: React.FC<Props> = ({ navigation }) => {
-    const [data, setData] = useState<Item[]>(initialData);
-    const [search, setSearch] = useState('');
+    //const [data, setData] = useState<Item[]>(initialData);
+    const [searchValue, setSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [listData, setListData] = useState<any[]>([]);
+    const { data, error, isLoading, isSuccess, refetch } = useApiSearchQuery({ search: searchValue, page});
+
+    const handleSearch = (value: string) => {
+        setSearch(value);
+        setPage(1);
+        setListData([]);
+        refetch();
+      };
+
+    const handleLoadMore = () => {
+    setPage((prevPage) => prevPage + 1);
+    };
 
     const handlePress_InfoPeliculaPlay = () => {
         // Handle the press event for the play button
@@ -66,7 +63,8 @@ const SearchScreen: React.FC<Props> = ({ navigation }) => {
         // Handle the press event for the fecha button
     };
 
-    const fetchData = () => {
+
+    /* const fetchData = () => {
         // Simulate fetching new data and append it to the list
         const newData = {
             id: (data.length + 1).toString(),
@@ -78,16 +76,7 @@ const SearchScreen: React.FC<Props> = ({ navigation }) => {
         };
         setData([...data, newData]);
     };
-
-    useEffect(() => {
-        // This effect will run whenever the data state changes
-        // Perform any additional updates or actions if necessary
-    }, [data]);
-
-    const updateSearch = (text: string) => {
-        setSearch(text);
-        // Implement search functionality here
-    };
+ */
 
     const renderItem: ListRenderItem<Item> = ({ item }) => (
         <View style={styles.container}>
@@ -119,6 +108,13 @@ const SearchScreen: React.FC<Props> = ({ navigation }) => {
         </View>
     );
 
+
+    console.log('Search Value:', searchValue);
+    console.log('Page:', page);
+    console.log('List Data:', listData);
+    console.log(isSuccess)
+    console.log(error);
+
     return (
         <ImageBackground source={require('../../assets/images/Background.png')} style={styles.background}>
             <View style={styles.topFrame}>
@@ -127,7 +123,7 @@ const SearchScreen: React.FC<Props> = ({ navigation }) => {
                 </TouchableOpacity>
             </View>
             <View style={styles.searchContainer}>
-                <CustomSearchBar/>
+                <CustomSearchBar onSearch={handleSearch}/>
             </View>
             <View style={styles.middleFrame}>
                 <View style={styles.iconsContainer}>
@@ -141,13 +137,16 @@ const SearchScreen: React.FC<Props> = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
+            {isLoading && page === 1 && <Text>Loading...</Text>}
+            {error && <Text>Error: {error.toString()}</Text>}
             <FlatList
-                data={data}
+                data={listData}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.flatListContentContainer}
                 onEndReachedThreshold={0.5}
-                onEndReached={fetchData}
+                onEndReached={handleLoadMore}
+                ListFooterComponent={isLoading && page > 1 ? <Text>Loading more...</Text> : null}
             />
         </ImageBackground>
     );

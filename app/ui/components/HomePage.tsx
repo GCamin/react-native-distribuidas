@@ -8,6 +8,7 @@ import AnioDuracion from '../../assets/svg/Anio-Duracion.svg';
 import Generos from '../../assets/svg/Generos.svg';
 import FavIcon from '../../assets/svg/Fav-icon.svg';
 import SearchIcon from '../../assets/svg/Search-icon.svg';
+import { useTestQuery } from '../../redux/ApiTest';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -20,30 +21,32 @@ type Item = {
     image: any;
 };
 
-const initialData: Item[] = [
-    {
-        id: '1',
-        title: 'Pobres Criaturas',
-        description: ' ds sd fads lfksadn ldslf nasdnf sdf asdf gsdfasd s dlk asdkln sdn ksnd kEl Dr. Godwin resucita a la bella Bella Baxter para que aprenda a su lado. Sin embargo, ella huye en compañía de un abogado porque quiere recorrer el mundo, sedienta de deseo de igualdad y libertad.',
-        year: '2023',
-        duration: '120 min',
-        image: 'https://image.tmdb.org/t/p/w500/xi8Iu6qyTfyZVDVy60raIOYJJmk.jpg'
-    },
-    {
-        id: '2',
-        title: 'Pobres Criaturas',
-        description: 'El Dr. Godwin resucita a la bella Bella Baxter para que aprenda a su lado. Sin embargo, ella huye en compañía de un abogado porque quiere recorrer el mundo, sedienta de deseo de igualdad y libertad.',
-        year: '2023',
-        duration: '120 min',
-        image: 'https://image.tmdb.org/t/p/w500/xi8Iu6qyTfyZVDVy60raIOYJJmk.jpg'
-    },
-    // Add more initial items here if needed
-];
 
-const genres = ['Acción', 'Aventura', 'Animación', 'Comedia', 'Crimen', 'Documental', 'Drama', 'Familia', 'Fantasía', 'Historia', 'Terror', 'Música', 'Misterio', 'Romance', 'Ciencia Ficción', 'Pelicula de TV', 'Suspense', 'Bélica', 'Western'];
+const peliculas: Item[] = []; 
+
+const generos = [{"id": 'Acción', "genero": 'Accion'}
+    , {"id": 'Aventura', "genero": "Aventura"}
+    , {"id": 'Animación', "genero": "Animacion"}
+    , {"id": 'Comedia', "genero": "Comedia"}
+    , {"id": 'Crimen', "genero": "Crimen"}
+    , {"id": 'Documental', "genero": "Documenta"}
+    , {"id": 'Drama', "genero": "Drama"}
+    , {"id": 'Familia', "genero": "Familia"}
+    , {"id": 'Fantasía', "genero": "Fantasia"}
+    , {"id": 'Historia', "genero": "Historia"} 
+    , {"id": 'Terror', "genero": "Terror"}
+    , {"id": 'Música', "genero": "Musica"}
+    , {"id": 'Misterio', "genero": "Misterio"}
+    , {"id": 'Romance', "genero": "Romance"}
+    , {"id": 'Ciencia Ficción', "genero": "Sci-Fi"}
+    , {"id": 'Pelicula de TV', "genero": "TV Show"}
+    , {"id": 'Suspense', "genero": "Suspenso"}
+    , {"id": 'Bélica', "genero": "Guerra"}
+    , {"id": 'Western', "genero": "Oeste"}];
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
-    const [data, setData] = useState<Item[]>(initialData);
+    const [pelicula, setData] = useState<Item[]>(peliculas);
+    const { data, error, isLoading, isSuccess } = useTestQuery();
 
     const handlePress_InfoPeliculaPlay = () => {
         // Handle the press event for the play button
@@ -62,22 +65,21 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     };
 
     const fetchData = () => {
-        // Simulate fetching new data and append it to the list
         const newData = {
-            id: (data.length + 1).toString(),
+            id: (pelicula.length + 1).toString(),
             title: 'New Title',
             description: 'New description that is also long enough to demonstrate text wrapping and ellipsis behavior.',
             year: '2024',
             duration: '130 min',
             image: 'https://image.tmdb.org/t/p/w500/nXIV2qGK9KkdkaOTzrpK87CuAGC.jpg'
         };
-        setData([...data, newData]);
+        setData([...pelicula, newData]);
     };
 
     useEffect(() => {
         // This effect will run whenever the data state changes
         // Perform any additional updates or actions if necessary
-    }, [data]);
+    }, [pelicula]);
 
     const renderItem: ListRenderItem<Item> = ({ item }) => (
         <View style={styles.container}>
@@ -109,6 +111,9 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
     );
 
+    console.log((data?.name))
+    console.log(isSuccess)
+
     return (
         <ImageBackground source={require('../../assets/images/Background.png')} style={styles.background}>
             <View style={styles.topFrame}>
@@ -117,7 +122,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                         source={require('../../assets/images/profile.jpg')} // Replace with the actual user profile image URL
                         style={styles.profileImage}
                     />
-                    <Text style={styles.nickname}>nick_name</Text>
+                    <Text style={styles.nickname}>{(data?.name)}</Text>
                 </View>
                 <View style={styles.iconsContainer}>
                     <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
@@ -130,21 +135,21 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             </View>
             <View style={styles.genreListContainer}>
                 <FlatList
-                    data={genres}
+                    data={generos}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    keyExtractor={(item) => item}
+                    keyExtractor={(item) => item.genero}
                     renderItem={({ item }) => (
                         <TouchableOpacity onPress={handlePress_FilterGenero}>
                             <Generos style={styles.genreItem}/>
-                            <Text style={styles.genreText}>{item}</Text>
+                            <Text style={styles.genreText}>{item.genero}</Text>
                         </TouchableOpacity>
                     )}
                 />
             </View>
             <Text style={styles.titleHome}>Ultimos Trailers</Text>
             <FlatList
-                data={data}
+                data={pelicula}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.flatListContentContainer}

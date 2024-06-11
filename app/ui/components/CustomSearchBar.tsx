@@ -1,9 +1,17 @@
-// src/components/CustomSearchBar.tsx
 import React from "react";
 import { SearchBar } from "@rneui/base";
 
-const CustomSearchBar: React.FC = () => {
+interface CustomSearchBarProps {
+  onSearch: (value: string) => void;
+}
+
+const CustomSearchBar: React.FC<CustomSearchBarProps> = ({ onSearch }) => {
   const [value, setValue] = React.useState("");
+
+  const handleSearch = (newVal: string) => {
+    setValue(newVal);
+    onSearch(newVal);
+  };
 
   return (
     <SearchBar
@@ -33,13 +41,12 @@ const CustomSearchBar: React.FC = () => {
       leftIconContainerStyle={{}}
       rightIconContainerStyle={{}}
       loadingProps={{}}
-      onChangeText={(newVal) => setValue(newVal)}
+      onChangeText={handleSearch}
       onClear={() => setValue('')}
       cancelButtonTitle="Cancel"
       cancelButtonProps={{}}
       onCancel={() => console.log('Search canceled')}
       value={value}
-    
     />
   );
 };

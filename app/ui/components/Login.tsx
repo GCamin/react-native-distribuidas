@@ -1,33 +1,25 @@
 // App.js
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import auth from '@react-native-firebase/auth';
 import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent } from 'react-native';
 import ProfilePage from './UserProfile';
+
+GoogleSignin.configure({
+  webClientId: '889659772018-e2b450naiqjmjsir1c382lgj5vpihfsi.apps.googleusercontent.com', 
+  scopes: ['profile', 'email'],
+});
 
 const LoginScreen = ({ navigation }) => {
   function handlePress(event: GestureResponderEvent): void {
       throw new Error('Function not implemented.');
   }
-  useEffect(() => {
-  GoogleSignin.configure({
-    webClientId: 'YOUR_WEB_CLIENT_ID', // Reemplaza con tu ID de cliente web
-  });
-}, []);
 
 const onGoogleButtonPress = async () => {
   try {
-    // Get the users ID token
-    const { idToken } = await GoogleSignin.signIn();
-
-    // Create a Google credential with the token
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
-    // Sign-in the user with the credential
-    await auth().signInWithCredential(googleCredential);
-
-    // Navigate to Profile screen on successful login
-    navigation.replace('Profile');
+    await GoogleSignin.hasPlayServices();
+    const response = await GoogleSignin.signIn();
+    console.log(response)
+  
   } catch (error) {
     console.error('Google Sign-In error: ',error);
   }
