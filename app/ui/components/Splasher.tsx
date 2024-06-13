@@ -1,40 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../app/navigation/Navigation.tsx';
-import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent } from 'react-native';
+import { View, Text, Image, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modal';
 import { BlurView } from '@react-native-community/blur';
+import NetInfo from '@react-native-community/netinfo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splasher'>;
 
 const Splasher: React.FC<Props> = ({ navigation }) => {
-    useEffect(() => {
-        // Navega a la página "Profile" después de 5 segundos. Cambiar luego a "Login"
-        const timer = setTimeout(() => {
-          navigation.replace('Login');
-        }, 5000);
-        return () => clearTimeout(timer);
-      }, [navigation]);
   const [isModalVisible, setModalVisible] = useState(false);
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
+  const [isConnected, setIsConnected] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Suscribirse a los cambios en el estado de la conexión a internet
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
+    });
+
+    // Verificar el estado de la conexión al cargar el componente
+    NetInfo.fetch().then(state => {
+      setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
+    });
+
+    // Navega a la página "Login" después de 5 segundos si hay conexión a internet
+    const timer = setTimeout(() => {
+      if (isConnected) {
+        navigation.replace('Login');
+      } else {
+        setModalVisible(true);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
+  }, [isConnected, navigation]);
+
+  const handleRetry = () => {
+    setModalVisible(false);
+    NetInfo.fetch().then(state => {
+      const isCurrentlyConnected = state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false;
+      setIsConnected(isCurrentlyConnected);
+      if (isCurrentlyConnected) {
+        navigation.replace('Login');
+      } else {
+        setModalVisible(true);
+      }
+    });
   };
-  const handleDeleteProfile = () => {
-    // Lógica para eliminar el perfil
-    toggleModal();
-  };
-  //incluir logica de errores de servidor (sacar de userprofile modal pop-up)
-  function handlePress(event: GestureResponderEvent): void {
-    throw new Error('Function not implemented.');
-}
+
   return (
     <ImageBackground
       source={require('../../assets/images/Background.png')}
       style={styles.background}>
-        <View style={styles.container}>    
-            {/* Icono de aplicacion */}
-            <Image source={require('../../assets/images/app-logo.png')} style={styles.iconImage} />
+      <View style={styles.container}>
+        {/* Icono de aplicacion */}
+        <Image source={require('../../assets/images/app-logo.png')} style={styles.iconImage} />
+      </View>
+      <Modal isVisible={isModalVisible} backdropOpacity={0.5} style={styles.modal}>
+        <View style={styles.modalContainer}>
+          <BlurView style={styles.absolute} blurType="light" blurAmount={10}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Error de conexión</Text>
+              <Text style={styles.modalMessage}>No hay conexión a internet. Por favor, verifica tu conexión e inténtalo de nuevo.</Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.modalButton} onPress={handleRetry}>
+                  <Text style={styles.modalButtonText}>Reintentar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </BlurView>
         </View>
+      </Modal>
     </ImageBackground>
   );
 };
@@ -103,7 +142,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     margin: 5,  
-    width: 100,
+    width: 130,
+    right: 30,
   },
   modalButtonText: {
     color: '#101010',

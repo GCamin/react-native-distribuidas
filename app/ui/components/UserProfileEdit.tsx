@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../app/navigation/Navigation';
 import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent, KeyboardAvoidingView, Platform } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { BlurView } from '@react-native-community/blur';
+import NetInfo from '@react-native-community/netinfo';
+import Modal from 'react-native-modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
@@ -13,6 +16,43 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
   const [fullName, setFullName] = useState('Anabelle Herrera');
   const [email, setEmail] = useState('ana_herrera@gmail.com');
   const [errors, setErrors] = useState({ nickname: false, fullName: false });
+  const [isConnectionModalVisible, setConnectionModalVisible] = useState(false);
+  const [isConnected, setIsConnected] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Suscribirse a los cambios en el estado de la conexión a internet
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
+    });
+
+    // Verificar el estado de la conexión al cargar el componente
+    NetInfo.fetch().then(state => {
+      setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
+    });
+
+    return () => unsubscribe(); // Limpia la suscripción al desmontar el componente
+  }, []);
+
+  const handleRetry = () => {
+    setConnectionModalVisible(false);
+    NetInfo.fetch().then(state => {
+      const isCurrentlyConnected = state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false;
+      setIsConnected(isCurrentlyConnected);
+      if (isCurrentlyConnected) {
+        navigation.replace('Login');
+      } else {
+        setConnectionModalVisible(true);
+      }
+    });
+  };
+
+  const checkConnectionAndNavigate = (action: () => void) => {
+    if (!isConnected) {
+      setConnectionModalVisible(true);
+    } else {
+      action();
+    }
+  };
 
   const selectImage = () => {
     launchImageLibrary({}, (response) => {
@@ -42,6 +82,8 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
   const handleSaveChanges = () => {
     if (validateFields()) {
       // Save changes logic here
+      console.log("Cambios guardados");
+      navigation.goBack();
     }
   };
 
@@ -93,13 +135,28 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
         </View>
         <View style={styles.bottomContainer}>
           {/* Buttons */}
-          <TouchableOpacity style={styles.SaveChangesButton} onPress={handleSaveChanges}>
+          <TouchableOpacity style={styles.SaveChangesButton} onPress={() => checkConnectionAndNavigate (handleSaveChanges)}>
             <Text style={styles.SaveChangesButtonText}>Guardar cambios</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => checkConnectionAndNavigate(navigation.goBack)}>
             <Text style={styles.CancelChangesText}>Cancelar</Text>
           </TouchableOpacity>
         </View>
+        <Modal isVisible={isConnectionModalVisible} backdropOpacity={0.5} style={styles.modal}>
+          <View style={styles.modalContainer}>
+            <BlurView style={styles.absolute} blurType="light" blurAmount={10}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitleConnection}>Error de conexión</Text>
+                <Text style={styles.modalMessageConnection}>No hay conexión a internet. Por favor, verifica tu conexión e inténtalo de nuevo.</Text>
+                <View style={styles.modalButtonsConnection}>
+                  <TouchableOpacity style={styles.modalButtonConnection} onPress={handleRetry}>
+                    <Text style={styles.modalButtonTextConnection}>Reintentar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </BlurView>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -227,6 +284,61 @@ const styles = StyleSheet.create({
   errorInput: {
     borderColor: 'red',
     borderWidth: 1,
+  },
+  modal: {
+    justifyContent: 'center',
+    margin: 0, // Añadir esta línea para eliminar el margen por defecto
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  absolute: {
+    position: 'center',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
+  modalContent: {
+    backgroundColor: '#3B185F',
+    padding: 20,
+    borderRadius: 15,
+    borderWidth: 2,  // Añade esta línea para definir el grosor del borde
+    borderColor: '#FEC260',  // Añade esta línea para definir el color del borde
+    alignItems: 'center',
+    width: '80%',
+  },
+  modalTitleConnection: {
+    color: '#FEC260',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalMessageConnection: {
+    color: '#FEC260',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtonsConnection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  modalButtonConnection: {
+    backgroundColor: '#FEC260',
+    padding: 10,
+    borderRadius: 5,
+    margin: 5,  
+    width: 130,
+    right: 30,
+  },
+  modalButtonTextConnection: {
+    color: '#101010',
+    textAlign: 'center',
+    fontSize: 16,
   },
 });
 
