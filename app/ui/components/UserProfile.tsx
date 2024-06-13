@@ -22,7 +22,7 @@ import {logOut} from '../../redux/user.js';
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfilePage: React.FC<Props> = ({navigation}) => {
-  const userId = useSelector((state) => state.user.id);
+  const userId = useSelector(state => state?.user?.id);
   const {data, isLoading} = useUserInfoQuery(userId);
   const [deleteUser, {isLoading: isDeleting, error}] = useUserDeleteMutation();
   const dispatch = useDispatch();
@@ -94,11 +94,12 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
       setConnectionModalVisible(true);
     } else {
       try {
-        await deleteUser(userId).unwrap();
+        deleteUser(userId).unwrap();
         console.log("Perfil eliminado");
         dispatch(logOut());
         navigation.replace("Login");
       } catch (error) {
+        console.log(userId)
         console.error("Error al eliminar el perfil:", error);
         if (error.status === 401) {
           alert('Error de autenticación. Por favor, inicia sesión nuevamente.');

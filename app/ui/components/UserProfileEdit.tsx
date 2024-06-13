@@ -115,7 +115,7 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
       // Save changes logic here
       try {
         const userData = { nickName: nickname, name: fullName, email };
-        await updateUser({ userId, userData }).unwrap();
+        updateUser({ userId, userData }).unwrap();
         console.log("Cambios guardados");
 
         // Actualiza los datos en el estado global

@@ -13,7 +13,7 @@ export const profile = createApi({
     }),
     userDelete: builder.mutation({
       query: (userId) => ({
-        url: '/users/${userId}',
+        url: `/users/${userId}`,
         method: 'DELETE',
         params: {
           id: userId,
@@ -31,4 +31,3 @@ export const profile = createApi({
 });
 
 export const {useUserInfoQuery, useUserDeleteMutation, useUpdateUserMutation} = profile;
-export default profile;
