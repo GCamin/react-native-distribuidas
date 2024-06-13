@@ -30,7 +30,7 @@ const Splasher: React.FC<Props> = ({ navigation }) => {
       } else {
         setModalVisible(true);
       }
-    }, 5000);
+    }, 3000);
 
     return () => {
       clearTimeout(timer);
@@ -44,7 +44,7 @@ const Splasher: React.FC<Props> = ({ navigation }) => {
       const isCurrentlyConnected = state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false;
       setIsConnected(isCurrentlyConnected);
       if (isCurrentlyConnected) {
-        navigation.replace('Login');
+        setModalVisible(false);
       } else {
         setModalVisible(true);
       }

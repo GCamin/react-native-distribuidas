@@ -1,36 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../app/navigation/Navigation';
-import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, 
+  Text, 
+  Image, 
+  TextInput, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ImageBackground, 
+  GestureResponderEvent, 
+  KeyboardAvoidingView, 
+  Platform,
+  ActivityIndicator } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { BlurView } from '@react-native-community/blur';
+import {useUserInfoQuery} from '../../redux/profileApi.js';
+import {useSelector} from 'react-redux';
 import NetInfo from '@react-native-community/netinfo';
 import Modal from 'react-native-modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
 const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
+  const userId = useSelector(state => state?.user?.id);
+  const {data, isLoading} = useUserInfoQuery(userId);
   const profileImageUrl = 'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
   const [profileImage, setProfileImage] = useState({ uri: profileImageUrl });
-  const [nickname, setNickname] = useState('ana_herrera');
-  const [fullName, setFullName] = useState('Anabelle Herrera');
-  const [email, setEmail] = useState('ana_herrera@gmail.com');
+  const [nickname, setNickname] = useState (data?.nickName);
+  const [fullName, setFullName] = useState (data?.name);
+  const [email, setEmail] = useState (data?.email);
   const [errors, setErrors] = useState({ nickname: false, fullName: false });
   const [isConnectionModalVisible, setConnectionModalVisible] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean>(true);
 
   useEffect(() => {
-    // Suscribirse a los cambios en el estado de la conexión a internet
+    let timeoutId: NodeJS.Timeout;
     const unsubscribe = NetInfo.addEventListener(state => {
-      setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
+      const connected = state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false;
+      setIsConnected(connected);
+      clearTimeout(timeoutId);
+      if (!connected) {
+        // Si no hay conexión, establecer un timeout para mostrar el modal después de 3 segundos
+        timeoutId = setTimeout(() => {
+          setConnectionModalVisible(true);
+        }, 2000);
+      } else {
+        // Si hay conexión, ocultar el modal
+        setConnectionModalVisible(false);
+      }
     });
 
     // Verificar el estado de la conexión al cargar el componente
     NetInfo.fetch().then(state => {
       setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
     });
-
-    return () => unsubscribe(); // Limpia la suscripción al desmontar el componente
+    return () => {
+      unsubscribe(); // Limpia la suscripción al desmontar el componente
+      clearTimeout(timeoutId); // Limpiar el timeout al desmontar el componente
+    };
   }, []);
 
   const handleRetry = () => {
@@ -39,7 +66,7 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
       const isCurrentlyConnected = state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false;
       setIsConnected(isCurrentlyConnected);
       if (isCurrentlyConnected) {
-        navigation.replace('Login');
+        setConnectionModalVisible(false);
       } else {
         setConnectionModalVisible(true);
       }
@@ -92,6 +119,9 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
       source={require('../../assets/images/Background.png')}
       style={styles.background}
     >
+      {isLoading && data ? (
+        <ActivityIndicator size={'large'} />
+      ) : (
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -101,7 +131,13 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
 
         <View style={styles.profileImageContainer}>
           {/* Profile Picture */}
-          <Image source={profileImage} style={styles.profileImage} />
+          <Image
+              source={{
+                uri:
+                  data.profileImageUrl || 'https://i.stack.imgur.com/l60Hf.png',
+              }}
+              style={styles.profileImage}
+            />
           {/* Upload Button */}
           <TouchableOpacity style={styles.uploadButton} onPress={selectImage}>
             <Image source={require('../../assets/images/upload-icon.png')} style={styles.uploadIcon} />
@@ -158,6 +194,7 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
           </View>
         </Modal>
       </KeyboardAvoidingView>
+      )}
     </ImageBackground>
   );
 };

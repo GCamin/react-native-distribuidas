@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../app/navigation/Navigation.tsx';
 import {
@@ -15,6 +15,7 @@ import {
 import Modal from 'react-native-modal';
 import {BlurView} from '@react-native-community/blur';
 import {useUserInfoQuery} from '../../redux/profileApi.js';
+import NetInfo from '@react-native-community/netinfo';
 import {useSelector} from 'react-redux';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
@@ -28,15 +29,71 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
   const [nickname, setNickname] = useState(data?.nickName);
   const [fullName, setFullName] = useState(data?.name);
   const [email, setEmail] = useState(data?.email);
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isConnectionModalVisible, setConnectionModalVisible] = useState(false);
+  const [isConnected, setIsConnected] = useState<boolean>(true);
 
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
+  useEffect(() => {
+    // Suscribirse a los cambios en el estado de la conexión a internet
+    let timeoutId: NodeJS.Timeout;
+    const unsubscribe = NetInfo.addEventListener(state => {
+      const connected = state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false;
+      setIsConnected(connected);
+      clearTimeout(timeoutId);
+      if (!connected) {
+        // Si no hay conexión, establecer un timeout para mostrar el modal después de 3 segundos
+        timeoutId = setTimeout(() => {
+          setConnectionModalVisible(true);
+        }, 2000);
+      } else {
+        // Si hay conexión, ocultar el modal
+        setConnectionModalVisible(false);
+      }
+    });
+
+    // Verificar el estado de la conexión al cargar el componente
+    NetInfo.fetch().then(state => {
+      setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
+    });
+    return () => {
+      unsubscribe(); // Limpia la suscripción al desmontar el componente
+      clearTimeout(timeoutId); // Limpiar el timeout al desmontar el componente
+    };
+  }, []);
+
+  const handleRetry = () => {
+    setConnectionModalVisible(false);
+    NetInfo.fetch().then(state => {
+      const isCurrentlyConnected = state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false;
+      setIsConnected(isCurrentlyConnected);
+      if (isCurrentlyConnected) {
+        setConnectionModalVisible(false);
+      } else {
+        setConnectionModalVisible(true);
+      }
+    });
+  };
+
+  const checkConnectionAndNavigate = (action: () => void) => {
+    if (!isConnected) {
+      setConnectionModalVisible(true);
+    } else {
+      action();
+    }
   };
 
   const handleDeleteProfile = () => {
-    // Lógica para eliminar el perfil
-    toggleModal();
+    // Ocultar el modal de eliminación
+    setDeleteModalVisible(false);
+
+    // Verificar conexión y mostrar modal de error de conexión si es necesario
+    if (!isConnected) {
+      setConnectionModalVisible(true);
+    } else {
+      // Lógica de eliminación del perfil, reemplazar console.log por logica de eliminacion
+      console.log("Perfil eliminado");
+      navigation.replace("Login");
+    }
   };
 
   function handlePress(event: GestureResponderEvent): void {
@@ -54,7 +111,7 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
           <View style={styles.headerContainer}>
             <TouchableOpacity
               style={styles.backButtonContainer}
-              onPress={() => navigation.goBack()}>
+              onPress={() => checkConnectionAndNavigate(navigation.goBack)}>
               <Image
                 source={require('../../assets/images/arrow-back.png')}
                 style={styles.backIcon}
@@ -79,7 +136,7 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
             {/* Edit Button */}
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => navigation.navigate('ProfileEdit')}>
+              onPress={() => checkConnectionAndNavigate(() => navigation.navigate('ProfileEdit'))}>
               <Text style={styles.editButtonText}>Editar Perfil</Text>
             </TouchableOpacity>
 
@@ -110,12 +167,12 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
               <TouchableOpacity style={styles.logoutButton}>
                 <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={toggleModal}>
+              <TouchableOpacity onPress={() => setDeleteModalVisible(true)}>
                 <Text style={styles.deleteProfileText}>Eliminar perfil</Text>
               </TouchableOpacity>
             </View>
             <Modal
-              isVisible={isModalVisible}
+              isVisible={isDeleteModalVisible}
               backdropOpacity={0.5}
               style={styles.modal}>
               <View style={styles.modalContainer}>
@@ -136,7 +193,7 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.modalButton}
-                        onPress={toggleModal}>
+                        onPress={() => setDeleteModalVisible(false)}>
                         <Text style={styles.modalButtonText}>Cancelar</Text>
                       </TouchableOpacity>
                     </View>
@@ -144,6 +201,22 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
                 </BlurView>
               </View>
             </Modal>
+            {/* Modal de error de conexión */}
+        <Modal isVisible={isConnectionModalVisible} backdropOpacity={0.5} style={styles.modal}>
+          <View style={styles.modalContainer}>
+            <BlurView style={styles.absolute} blurType="light" blurAmount={10}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitleConnection}>Error de conexión</Text>
+                <Text style={styles.modalMessageConnection}>No hay conexión a internet. Por favor, verifica tu conexión e inténtalo de nuevo.</Text>
+                <View style={styles.modalButtonsConnection}>
+                  <TouchableOpacity style={styles.modalButtonConnection} onPress={handleRetry}>
+                    <Text style={styles.modalButtonTextConnection}>Reintentar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </BlurView>
+          </View>
+        </Modal>
           </View>
         </>
       )}
@@ -305,6 +378,36 @@ const styles = StyleSheet.create({
     width: 100,
   },
   modalButtonText: {
+    color: '#101010',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  modalTitleConnection: {
+    color: '#FEC260',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalMessageConnection: {
+    color: '#FEC260',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtonsConnection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  modalButtonConnection: {
+    backgroundColor: '#FEC260',
+    padding: 10,
+    borderRadius: 5,
+    margin: 5,  
+    width: 130,
+    right: 30,
+  },
+  modalButtonTextConnection: {
     color: '#101010',
     textAlign: 'center',
     fontSize: 16,
