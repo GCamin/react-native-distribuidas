@@ -9,6 +9,7 @@ import {
   ImageBackground,
   FlatList,
   ListRenderItem,
+  Pressable,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation/Navigation'; // Adjust the path if necessary
@@ -18,6 +19,8 @@ import Generos from '../../assets/svg/Generos.svg';
 import FavIcon from '../../assets/svg/Fav-icon.svg';
 import SearchIcon from '../../assets/svg/Search-icon.svg';
 import {useHomeApiQuery} from '../../redux/moviesApi';
+import {useUserInfoQuery} from '../../redux/profileApi';
+import {useSelector} from 'react-redux';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -55,8 +58,8 @@ const generos = [
 ];
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
-  const [pelicula, setData] = useState<Item[]>(peliculas);
-  /*   const {data, error, isLoading, isSuccess} = useTestQuery(); */
+  const userId = useSelector(state => state?.user?.id);
+  const {data: userData} = useUserInfoQuery(userId);
   const [selectedGenre, setSelectedGenre] = useState('');
   const [page, setPage] = useState(1);
   const {data, error, isLoading, isFetching} = useHomeApiQuery({
@@ -73,18 +76,18 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const handlePress_Profile = () => {
-    // Handle the press event for the play button
+    navigation.navigate('Profile');
   };
 
   const handlePress_FilterGenero = genre => {
     setPage(1);
-    setSelectedGenre(genre);
+    if (selectedGenre === genre) {
+      setSelectedGenre('');
+    } else {
+      setSelectedGenre(genre);
+    }
   };
 
-  /*   useEffect(() => {
-    // This effect will run whenever the data state changes
-    // Perform any additional updates or actions if necessary
-  }, [pelicula]); */
   const handleLoadMore = () => {
     if (!isFetching && data) {
       setPage(prevPage => prevPage + 1);
@@ -92,7 +95,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const mappedMovies =
-    data?.map(movie => ({
+    data?.movies?.map(movie => ({
       id: movie.id,
       title: movie.title,
       description: movie.synopsis,
@@ -137,21 +140,27 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
     </View>
   );
 
-  /*   console.log(data?.name);
-  console.log(isSuccess); */
-
   return (
     <ImageBackground
       source={require('../../assets/images/Background.png')}
       style={styles.background}>
       <View style={styles.topFrame}>
-        <View style={styles.profileContainer}>
-          <Image
-            source={require('../../assets/images/profile.jpg')} // Replace with the actual user profile image URL
-            style={styles.profileImage}
-          />
-          <Text style={styles.nickname}>{data?.name}</Text>
-        </View>
+        <TouchableOpacity onPress={handlePress_Profile}>
+          <View style={styles.profileContainer}>
+            <Image
+              onError={e => console.log(e)}
+              source={
+                userData?.profileImageUrl
+                  ? {
+                      uri: userData.profileImageUrl,
+                    }
+                  : require('../../assets/images/profile.jpg')
+              } // Replace with the actual user profile image URL
+              style={styles.profileImage}
+            />
+            <Text style={styles.nickname}>{userData?.nickName}</Text>
+          </View>
+        </TouchableOpacity>
         <View style={styles.iconsContainer}>
           <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
             <FavIcon style={styles.icon} />
@@ -168,15 +177,29 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           showsHorizontalScrollIndicator={false}
           keyExtractor={item => item.genero}
           renderItem={({item}) => (
-            <TouchableOpacity onPress={() => handlePress_FilterGenero(item.id)}>
-              <Generos style={styles.genreItem} />
-              <Text style={styles.genreText}>{item.genero}</Text>
-            </TouchableOpacity>
+            <View
+              style={
+                selectedGenre === item.id
+                  ? styles.selectedGenreItem
+                  : styles.genreItem
+              }>
+              <TouchableOpacity
+                onPress={() => handlePress_FilterGenero(item.id)}>
+                <Text
+                  style={
+                    selectedGenre === item.id
+                      ? styles.selectedGenreText
+                      : styles.genreText
+                  }>
+                  {item.genero}
+                </Text>
+              </TouchableOpacity>
+            </View>
           )}
         />
       </View>
       <Text style={styles.titleHome}>Ultimos Trailers</Text>
-      {isLoading || (isFetching && page === 1 && <Text>Loading...</Text>)}
+      {isLoading || (isFetching && page === 1 && <Text>Cargando...</Text>)}
       {mappedMovies?.length ? (
         <FlatList
           data={mappedMovies}
@@ -186,7 +209,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           onEndReachedThreshold={0.5}
           onEndReached={handleLoadMore}
           ListFooterComponent={
-            isFetching && page > 1 ? <Text>Loading more...</Text> : null
+            isFetching && page > 1 ? <Text>Cargando más...</Text> : null
           }
         />
       ) : null}
@@ -301,20 +324,21 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#FEC260',
   },
-  selectedGenreItem: {
-    backgroundColor: '#FAFAFA',
-  },
   genreText: {
-    position: 'absolute', // Absolute positioning for text overlay
-    width: '100%', // Ensure text width matches the SVG component
     textAlign: 'center', // Center-align text
-    fontSize: 16, // Adjust the font size as needed
+    fontSize: 14, // Adjust the font size as needed
     color: '#101010',
     fontWeight: 'bold',
-    right: 5,
+  },
+  selectedGenreItem: {
+    marginRight: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    backgroundColor: '#A12568',
   },
   selectedGenreText: {
-    color: '#FEC260',
+    color: '#FAFAFA',
   },
   topFrame: {
     flexDirection: 'row',

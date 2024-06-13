@@ -14,16 +14,15 @@ const baseQuery = fetchBaseQuery({
 });
 
 const baseQueryWithReAuth = async (args, api, extraOptions) => {
-  console.log(args, api);
   let result = await baseQuery(args, api, extraOptions);
 
-  /* if (result.error && result.error.status === 401) {
-    const refreshToken = api.getState().userSession.refreshToken;
+  if (result.error && result.error.status === 401) {
+    const refreshToken = api.getState().user.jwtRefreshToken;
     const refreshResult = await baseQuery(
       {
-        url: '/auth/refreshToken',
+        url: '/auth/refresh-token',
         method: 'POST',
-        body: {refreshToken},
+        params: {refreshtoken: refreshToken},
       },
       api,
       extraOptions,
@@ -41,7 +40,7 @@ const baseQueryWithReAuth = async (args, api, extraOptions) => {
     } else {
       api.dispatch(logOut());
     }
-  } */
+  }
   return result;
 };
 

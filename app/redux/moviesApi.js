@@ -24,7 +24,7 @@ export const movies = createApi({
         if (arg.page === 1) {
           return newItems;
         } else {
-          currentCache.push(...newItems);
+          currentCache.movies.push(...newItems.movies);
         }
       },
       forceRefetch({currentArg, previousArg}) {
@@ -50,7 +50,7 @@ export const movies = createApi({
         if (arg.page === 1) {
           return newItems;
         } else {
-          currentCache.push(...newItems);
+          currentCache.movies.push(...newItems.movies);
         }
       },
       forceRefetch({currentArg, previousArg}) {

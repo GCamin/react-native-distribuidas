@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../app/navigation/Navigation.tsx';
-import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, GestureResponderEvent } from 'react-native';
+import React, {useState} from 'react';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../app/navigation/Navigation.tsx';
+import {
+  View,
+  Text,
+  Image,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ImageBackground,
+  GestureResponderEvent,
+  ActivityIndicator,
+} from 'react-native';
 import Modal from 'react-native-modal';
-import { BlurView } from '@react-native-community/blur';
+import {BlurView} from '@react-native-community/blur';
+import {useUserInfoQuery} from '../../redux/profileApi.js';
+import {useSelector} from 'react-redux';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
-const ProfilePage: React.FC<Props> = ({ navigation }) => {
-  const profileImageUrl = 'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
-  const [profileImage, setProfileImage] = useState({ uri: profileImageUrl });
-  const [nickname, setNickname] = useState('ana_herrera');
-  const [fullName, setFullName] = useState('Anabelle Herrera');
-  const [email, setEmail] = useState('ana_herrera@gmail.com');
+const ProfilePage: React.FC<Props> = ({navigation}) => {
+  const userId = useSelector(state => state?.user?.id);
+  const {data, isLoading} = useUserInfoQuery(userId);
+  const profileImageUrl =
+    'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
+  const [profileImage, setProfileImage] = useState({uri: profileImageUrl});
+  const [nickname, setNickname] = useState(data?.nickName);
+  const [fullName, setFullName] = useState(data?.name);
+  const [email, setEmail] = useState(data?.email);
   const [isModalVisible, setModalVisible] = useState(false);
 
   const toggleModal = () => {
@@ -31,77 +46,107 @@ const ProfilePage: React.FC<Props> = ({ navigation }) => {
   return (
     <ImageBackground
       source={require('../../assets/images/Background.png')}
-      style={styles.background}
-    >
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButtonContainer} onPress={() => navigation.goBack()}>
-          <Image source={require('../../assets/images/arrow-back.png')} style={styles.backIcon} />
-          <Text style={styles.backButton}>Volver</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.container}>
-        {/* Title */}
-        <Text style={styles.title}>Mi perfil</Text>
-
-        {/* Profile Picture */}
-        <Image source={profileImage} style={styles.profileImage} />
-
-        {/* Edit Button */}
-        <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('ProfileEdit')}>
-          <Text style={styles.editButtonText}>Editar Perfil</Text>
-        </TouchableOpacity>
-
-        {/* Form */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Nickname:</Text>
-          <TextInput
-            style={styles.userInfoText}
-            value={nickname}
-            onChangeText={setNickname}
-            editable={false}
-          />
-          <TextInput
-            style={styles.userInfoText}
-            value={fullName}
-            onChangeText={setFullName}
-            editable={false}
-          />
-          <TextInput
-            style={styles.userInfoText}
-            value={email}
-            editable={false}
-          />
-        </View>
-
-        <View style={styles.bottomContainer}>
-          {/* Buttons */}
-          <TouchableOpacity style={styles.logoutButton}>
-            <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={toggleModal}>
-            <Text style={styles.deleteProfileText}>Eliminar perfil</Text>
-          </TouchableOpacity>
-        </View>
-        <Modal isVisible={isModalVisible} backdropOpacity={0.5} style={styles.modal}>
-          <View style={styles.modalContainer}>
-            <BlurView style={styles.absolute} blurType="light" blurAmount={10}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>¿Está seguro?</Text>
-                <Text style={styles.modalMessage}>Al eliminar el perfil, perderá todos sus datos grabados.</Text>
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity style={styles.modalButton} onPress={handleDeleteProfile}>
-                    <Text style={styles.modalButtonText}>Eliminar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalButton} onPress={toggleModal}>
-                    <Text style={styles.modalButtonText}>Cancelar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </BlurView>
+      style={styles.background}>
+      {isLoading && data ? (
+        <ActivityIndicator size={'large'} />
+      ) : (
+        <>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity
+              style={styles.backButtonContainer}
+              onPress={() => navigation.goBack()}>
+              <Image
+                source={require('../../assets/images/arrow-back.png')}
+                style={styles.backIcon}
+              />
+              <Text style={styles.backButton}>Volver</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-      </View>
+
+          <View style={styles.container}>
+            {/* Title */}
+            <Text style={styles.title}>Mi perfil</Text>
+
+            {/* Profile Picture */}
+            <Image
+              source={{
+                uri:
+                  data.profileImageUrl || 'https://i.stack.imgur.com/l60Hf.png',
+              }}
+              style={styles.profileImage}
+            />
+
+            {/* Edit Button */}
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => navigation.navigate('ProfileEdit')}>
+              <Text style={styles.editButtonText}>Editar Perfil</Text>
+            </TouchableOpacity>
+
+            {/* Form */}
+            <View style={styles.form}>
+              <Text style={styles.label}>Nickname:</Text>
+              <TextInput
+                style={styles.userInfoText}
+                value={nickname}
+                onChangeText={setNickname}
+                editable={false}
+              />
+              <TextInput
+                style={styles.userInfoText}
+                value={fullName}
+                onChangeText={setFullName}
+                editable={false}
+              />
+              <TextInput
+                style={styles.userInfoText}
+                value={email}
+                editable={false}
+              />
+            </View>
+
+            <View style={styles.bottomContainer}>
+              {/* Buttons */}
+              <TouchableOpacity style={styles.logoutButton}>
+                <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={toggleModal}>
+                <Text style={styles.deleteProfileText}>Eliminar perfil</Text>
+              </TouchableOpacity>
+            </View>
+            <Modal
+              isVisible={isModalVisible}
+              backdropOpacity={0.5}
+              style={styles.modal}>
+              <View style={styles.modalContainer}>
+                <BlurView
+                  style={styles.absolute}
+                  blurType="light"
+                  blurAmount={10}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>¿Está seguro?</Text>
+                    <Text style={styles.modalMessage}>
+                      Al eliminar el perfil, perderá todos sus datos grabados.
+                    </Text>
+                    <View style={styles.modalButtons}>
+                      <TouchableOpacity
+                        style={styles.modalButton}
+                        onPress={handleDeleteProfile}>
+                        <Text style={styles.modalButtonText}>Eliminar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.modalButton}
+                        onPress={toggleModal}>
+                        <Text style={styles.modalButtonText}>Cancelar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </BlurView>
+              </View>
+            </Modal>
+          </View>
+        </>
+      )}
     </ImageBackground>
   );
 };
@@ -140,7 +185,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     textShadowColor: '#101010', // Añade un borde negro
-    textShadowOffset: { width: -1, height: 1 }, // Ajusta el desplazamiento de la sombra
+    textShadowOffset: {width: -1, height: 1}, // Ajusta el desplazamiento de la sombra
     textShadowRadius: 10, // Ajusta el radio de la sombra
   },
   profileImage: {
@@ -230,8 +275,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#3B185F',
     padding: 20,
     borderRadius: 15,
-    borderWidth: 2,  // Añade esta línea para definir el grosor del borde
-    borderColor: '#FEC260',  // Añade esta línea para definir el color del borde
+    borderWidth: 2, // Añade esta línea para definir el grosor del borde
+    borderColor: '#FEC260', // Añade esta línea para definir el color del borde
     alignItems: 'center',
     width: '80%',
   },
@@ -256,7 +301,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEC260',
     padding: 10,
     borderRadius: 5,
-    margin: 5,  
+    margin: 5,
     width: 100,
   },
   modalButtonText: {
@@ -267,4 +312,3 @@ const styles = StyleSheet.create({
 });
 
 export default ProfilePage;
-

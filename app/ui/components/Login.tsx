@@ -27,13 +27,14 @@ const LoginScreen = ({navigation}) => {
   const onGoogleButtonPress = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const {idToken, user} = await GoogleSignin.signIn();
+      const {idToken} = await GoogleSignin.signIn();
       const {
-        data: {id, jwtToken, jwtRefreshToken},
+        data: {idUsuario, jwtToken, jwtRefreshToken},
       } = await login(idToken);
+      console.log(idToken, 'ACA ESTA EL ID');
       dispatch(
         setCredentials({
-          id,
+          id: idUsuario,
           jwtToken,
           jwtRefreshToken,
         }),
@@ -66,7 +67,7 @@ const LoginScreen = ({navigation}) => {
             <Text style={styles.googleButtonText}>Continuar con Google</Text>
           </TouchableOpacity>
         ) : (
-          <Text>Loading...</Text>
+          <Text>Cargando...</Text>
         )}
       </View>
     </ImageBackground>

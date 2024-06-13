@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -36,10 +36,24 @@ type Item = {
   image: any;
 };
 
-//const initialData: Item[] = [];
+const getServerData = data => {
+  return (
+    data?.movies?.map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      description: movie.synopsis,
+      year: movie.year,
+      duration: movie.duration,
+      image:
+        movie.posterPic ||
+        'https://i.pinimg.com/originals/2d/a9/a1/2da9a1d58af1edb4a4168f013a3d9f9f.jpg',
+    })) || []
+  );
+};
 
 const SearchScreen: React.FC<Props> = ({navigation}) => {
   //const [data, setData] = useState<Item[]>(initialData);
+
   const [searchValue, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const {data, error, isLoading, isFetching} = useApiSearchQuery(
@@ -49,16 +63,17 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
     },
     {skip: !searchValue},
   );
+  const [dateOrder, setDateOrder] = useState('');
+  const [movies, setMovies] = useState(getServerData(data));
 
-  const totalResults = data?.totalResults
-
+  const totalResults = data?.totalResults;
   const handleSearch = (value: string) => {
     setSearch(value);
     setPage(1);
   };
 
   const handleLoadMore = () => {
-    if (!isFetching && data) {
+    if (!isFetching && data && movies?.length < totalResults) {
       setPage(prevPage => prevPage + 1);
     }
   };
@@ -71,6 +86,17 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
     // Handle the press event for the play button
   };
 
+  const handleOrderChange = prevOrder => {
+    switch (prevOrder) {
+      case '':
+        return 'desc';
+      case 'desc':
+        return 'asc';
+      case 'asc':
+      default:
+        return '';
+    }
+  };
   const handlePress_Calificacion = () => {
     // debo cambiar a boton fechaIconDesc (de fecha mas nueva a mas vieja) y si toco de nuevo a boton fechaIconAsc (de fecha mas vieja a mas nueva)
     // ordenar el listado de imagenes y dejarlo fijo (que no se pueda scrollear mas)
@@ -79,19 +105,26 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
   const handlePress_Fecha = () => {
     // debo cambiar a boton fechaIconDesc (de fecha mas nueva a mas vieja) y si toco de nuevo a boton fechaIconAsc (de fecha mas vieja a mas nueva)
     // ordenar el listado de imagenes y dejarlo fijo (que no se pueda scrollear mas)
+    const newOrder = handleOrderChange(dateOrder);
+    if (newOrder === 'desc') {
+      const sortedDesc = [...movies].sort((a, b) => b.year - a.year);
+      setMovies(sortedDesc);
+    }
+    if (newOrder === 'asc') {
+      const sortedAsc = [...movies].sort((a, b) => a.year - b.year);
+      setMovies(sortedAsc);
+    }
+    if (!newOrder) {
+      setMovies(getServerData(data));
+    }
+    setDateOrder(newOrder);
   };
 
-  const mappedMovies =
-    data?.map.movies(movie => ({
-      id: movie.id,
-      title: movie.title,
-      description: movie.synopsis,
-      year: movie.year,
-      duration: movie.duration,
-      image:
-        movie.posterPic ||
-        'https://i.pinimg.com/originals/2d/a9/a1/2da9a1d58af1edb4a4168f013a3d9f9f.jpg',
-    })) || [];
+  useEffect(() => {
+    if (data) {
+      setMovies(getServerData(data));
+    }
+  }, [data]);
 
   const renderItem: ListRenderItem<Item> = ({item}) => (
     <View style={styles.container}>
@@ -127,11 +160,6 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
     </View>
   );
 
-  console.log('Search Value:', searchValue);
-  console.log('Page:', page);
-  console.log(isLoading);
-  console.log(error);
-
   return (
     <ImageBackground
       source={require('../../assets/images/Background.png')}
@@ -146,8 +174,14 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
       </View>
       <View style={styles.middleFrame}>
         <View style={styles.iconsContainer}>
-          <TouchableOpacity>
-            <FechaIcon onPress={() => handlePress_Fecha} />
+          <TouchableOpacity onPress={handlePress_Fecha}>
+            {dateOrder === '' ? (
+              <FechaIcon />
+            ) : dateOrder === 'desc' ? (
+              <FechaIconDesc />
+            ) : (
+              <FechaIconAsc />
+            )}
           </TouchableOpacity>
         </View>
         <View style={styles.iconsContainer}>
@@ -156,11 +190,11 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
           </TouchableOpacity>
         </View>
       </View>
-      {isLoading || (isFetching && page === 1 && <Text>Loading...</Text>)}
+      {(isLoading || isFetching) && page === 1 && <Text>Cargando...</Text>}
       {error && <Text>Error: {error?.error}</Text>}
-      {mappedMovies?.length ? (
+      {movies?.length ? (
         <FlatList
-          data={mappedMovies}
+          data={movies}
           renderItem={renderItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.flatListContentContainer}
@@ -177,13 +211,13 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20, 
+    marginBottom: 20,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginVertical: 10,
-    paddingHorizontal: 20, 
+    paddingHorizontal: 20,
   },
   image: {
     width: 110,
@@ -228,9 +262,9 @@ const styles = StyleSheet.create({
   },
   playButtonContainer: {
     position: 'absolute',
-    right: 20, 
-    top: 0, 
-    height: 40, 
+    right: 20,
+    top: 0,
+    height: 40,
     justifyContent: 'center',
   },
   playButton: {
@@ -241,25 +275,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
-    paddingHorizontal: 1, 
+    paddingHorizontal: 1,
   },
   anioDuracionWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginHorizontal: 20, 
+    marginHorizontal: 20,
     bottom: 23,
     left: 25,
   },
   anioDuracion: {
-    width: 50, 
-    height: 50, 
-    position: 'relative', 
+    width: 50,
+    height: 50,
+    position: 'relative',
   },
   anioDuracionText: {
-    position: 'absolute', 
-    width: '100%', 
-    textAlign: 'center', 
-    fontSize: 10, 
+    position: 'absolute',
+    width: '100%',
+    textAlign: 'center',
+    fontSize: 10,
     color: '#FEC260',
     fontFamily: 'Roboto-Regular',
   },
@@ -268,7 +302,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   flatListContentContainer: {
-    paddingBottom: 20, 
+    paddingBottom: 20,
   },
   genreListContainer: {
     marginTop: 5,
@@ -296,7 +330,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 50,
     height: 50,
-    borderRadius: 25, 
+    borderRadius: 25,
     marginRight: 10,
   },
   nickname: {

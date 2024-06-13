@@ -24,6 +24,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
   const isLogged = useSelector(state => state?.user?.isLogged);
+  const session = useSelector(state => state?.user);
+  console.log('SESSION:', session);
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
