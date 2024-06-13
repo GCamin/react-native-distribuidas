@@ -1,5 +1,6 @@
 import {createApi} from '@reduxjs/toolkit/query/react';
 import baseQueryWithReAuth from './baseQuery';
+import { useSelector } from 'react-redux';
 
 export const profile = createApi({
   reducerPath: 'users',
@@ -11,15 +12,23 @@ export const profile = createApi({
       }),
     }),
     userDelete: builder.mutation({
-      query: userId => ({
-        url: '/users/',
+      query: (userId) => ({
+        url: '/users/${userId}',
         method: 'DELETE',
         params: {
           id: userId,
         },
       }),
     }),
+    updateUser: builder.mutation({
+      query: ({ userId, userData }) => ({
+        url: `/users/${userId}`,
+        method: 'PUT',
+        body: userData,
+      }),
+    }),
   }),
 });
 
-export const {useUserInfoQuery, useUserDeleteMutation} = profile;
+export const {useUserInfoQuery, useUserDeleteMutation, useUpdateUserMutation} = profile;
+export default profile;

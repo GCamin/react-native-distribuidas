@@ -14,15 +14,18 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import {BlurView} from '@react-native-community/blur';
-import {useUserInfoQuery} from '../../redux/profileApi.js';
 import NetInfo from '@react-native-community/netinfo';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
+import {useUserInfoQuery, useUserDeleteMutation} from '../../redux/profileApi.js';
+import {logOut} from '../../redux/user.js';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfilePage: React.FC<Props> = ({navigation}) => {
-  const userId = useSelector(state => state?.user?.id);
+  const userId = useSelector((state) => state.user.id);
   const {data, isLoading} = useUserInfoQuery(userId);
+  const [deleteUser, {isLoading: isDeleting, error}] = useUserDeleteMutation();
+  const dispatch = useDispatch();
   const profileImageUrl =
     'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
   const [profileImage, setProfileImage] = useState({uri: profileImageUrl});
@@ -82,7 +85,7 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
     }
   };
 
-  const handleDeleteProfile = () => {
+  const handleDeleteProfile = async () => {
     // Ocultar el modal de eliminación
     setDeleteModalVisible(false);
 
@@ -90,10 +93,26 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
     if (!isConnected) {
       setConnectionModalVisible(true);
     } else {
-      // Lógica de eliminación del perfil, reemplazar console.log por logica de eliminacion
-      console.log("Perfil eliminado");
-      navigation.replace("Login");
+      try {
+        await deleteUser(userId).unwrap();
+        console.log("Perfil eliminado");
+        dispatch(logOut());
+        navigation.replace("Login");
+      } catch (error) {
+        console.error("Error al eliminar el perfil:", error);
+        if (error.status === 401) {
+          alert('Error de autenticación. Por favor, inicia sesión nuevamente.');
+          dispatch(logOut());
+          navigation.replace("Login");
+        } else {
+          alert('Error al eliminar el perfil. Por favor, intenta de nuevo.');
+        }
+      }
     }
+  };
+
+  const handleLogout = () => {
+    dispatch(logOut());
   };
 
   function handlePress(event: GestureResponderEvent): void {
@@ -164,7 +183,7 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
 
             <View style={styles.bottomContainer}>
               {/* Buttons */}
-              <TouchableOpacity style={styles.logoutButton}>
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setDeleteModalVisible(true)}>
@@ -415,3 +434,7 @@ const styles = StyleSheet.create({
 });
 
 export default ProfilePage;
+function alert(arg0: string) {
+  throw new Error('Function not implemented.');
+}
+

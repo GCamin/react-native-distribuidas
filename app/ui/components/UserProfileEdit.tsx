@@ -14,8 +14,9 @@ import { View,
   ActivityIndicator } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { BlurView } from '@react-native-community/blur';
-import {useUserInfoQuery} from '../../redux/profileApi.js';
-import {useSelector} from 'react-redux';
+import {useUserInfoQuery, useUpdateUserMutation} from '../../redux/profileApi.js';
+import {useSelector, useDispatch} from 'react-redux';
+import { updateUserProfile } from '../../redux/userSlice';
 import NetInfo from '@react-native-community/netinfo';
 import Modal from 'react-native-modal';
 
@@ -23,7 +24,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
 const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
   const userId = useSelector(state => state?.user?.id);
-  const {data, isLoading} = useUserInfoQuery(userId);
+  const {data, isLoading, refetch} = useUserInfoQuery(userId);
+  const dispatch = useDispatch();
+  const [updateUser, { isLoading: isUpdating, error }] = useUpdateUserMutation();
   const profileImageUrl = 'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
   const [profileImage, setProfileImage] = useState({ uri: profileImageUrl });
   const [nickname, setNickname] = useState (data?.nickName);
@@ -85,6 +88,7 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
     launchImageLibrary({}, (response) => {
       if (response.assets && response.assets.length > 0) {
         setProfileImage({ uri: response.assets[0].uri });
+        refetch();
       }
     });
   };
@@ -106,13 +110,24 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
     return valid;
   };
 
-  const handleSaveChanges = () => {
-    if (validateFields()) {
+  const handleSaveChanges = async () => {
+    if (validateFields())
       // Save changes logic here
-      console.log("Cambios guardados");
-      navigation.goBack();
-    }
-  };
+      try {
+        const userData = { nickName: nickname, name: fullName, email };
+        await updateUser({ userId, userData }).unwrap();
+        console.log("Cambios guardados");
+
+        // Actualiza los datos en el estado global
+        dispatch(updateUserProfile(userData));
+
+        // Actualiza los datos locales
+        refetch();
+        //navigation.goBack();
+      } catch (error) {
+        console.error("Error al actualizar el perfil:", error);
+      }
+    };
 
   return (
     <ImageBackground
