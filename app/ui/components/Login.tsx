@@ -29,10 +29,11 @@ const LoginScreen = ({navigation}) => {
       await GoogleSignin.hasPlayServices();
       const {idToken, user} = await GoogleSignin.signIn();
       const {
-        data: {jwtToken, jwtRefreshToken},
+        data: {id, jwtToken, jwtRefreshToken},
       } = await login(idToken);
       dispatch(
         setCredentials({
+          id,
           jwtToken,
           jwtRefreshToken,
         }),

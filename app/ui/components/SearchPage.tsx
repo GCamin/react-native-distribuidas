@@ -50,6 +50,8 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
     {skip: !searchValue},
   );
 
+  const totalResults = data?.totalResults
+
   const handleSearch = (value: string) => {
     setSearch(value);
     setPage(1);
@@ -70,29 +72,17 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const handlePress_Calificacion = () => {
-    // Handle the press event for the calificacion button
+    // debo cambiar a boton fechaIconDesc (de fecha mas nueva a mas vieja) y si toco de nuevo a boton fechaIconAsc (de fecha mas vieja a mas nueva)
+    // ordenar el listado de imagenes y dejarlo fijo (que no se pueda scrollear mas)
   };
 
   const handlePress_Fecha = () => {
-    // Handle the press event for the fecha button
+    // debo cambiar a boton fechaIconDesc (de fecha mas nueva a mas vieja) y si toco de nuevo a boton fechaIconAsc (de fecha mas vieja a mas nueva)
+    // ordenar el listado de imagenes y dejarlo fijo (que no se pueda scrollear mas)
   };
 
-  /* const fetchData = () => {
-        // Simulate fetching new data and append it to the list
-        const newData = {
-            id: (data.length + 1).toString(),
-            title: 'New Title',
-            description: 'New description that is also long enough to demonstrate text wrapping and ellipsis behavior.',
-            year: '2024',
-            duration: '130 min',
-            image: 'https://image.tmdb.org/t/p/w500/nXIV2qGK9KkdkaOTzrpK87CuAGC.jpg'
-        };
-        setData([...data, newData]);
-    };
- */
-
   const mappedMovies =
-    data?.map(movie => ({
+    data?.map.movies(movie => ({
       id: movie.id,
       title: movie.title,
       description: movie.synopsis,
@@ -157,7 +147,7 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
       <View style={styles.middleFrame}>
         <View style={styles.iconsContainer}>
           <TouchableOpacity>
-            <FechaIcon />
+            <FechaIcon onPress={() => handlePress_Fecha} />
           </TouchableOpacity>
         </View>
         <View style={styles.iconsContainer}>
@@ -187,13 +177,13 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20, // Ensure no more than 20px spacing between containers
+    marginBottom: 20, 
   },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginVertical: 10,
-    paddingHorizontal: 20, // Add padding for better alignment
+    paddingHorizontal: 20, 
   },
   image: {
     width: 110,
@@ -238,9 +228,9 @@ const styles = StyleSheet.create({
   },
   playButtonContainer: {
     position: 'absolute',
-    right: 20, // Adjust the right position to match the padding
-    top: 0, // Align to the top of the row
-    height: 40, // Ensure the play button container height matches the play button
+    right: 20, 
+    top: 0, 
+    height: 40, 
     justifyContent: 'center',
   },
   playButton: {
@@ -251,25 +241,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
-    paddingHorizontal: 1, // Add padding for better alignment
+    paddingHorizontal: 1, 
   },
   anioDuracionWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginHorizontal: 20, // Add spacing between the two containers
+    marginHorizontal: 20, 
     bottom: 23,
     left: 25,
   },
   anioDuracion: {
-    width: 50, // Adjust the width to fit the SVG component
-    height: 50, // Adjust the height to fit the SVG component
-    position: 'relative', // Ensure proper positioning for text overlay
+    width: 50, 
+    height: 50, 
+    position: 'relative', 
   },
   anioDuracionText: {
-    position: 'absolute', // Absolute positioning for text overlay
-    width: '100%', // Ensure text width matches the SVG component
-    textAlign: 'center', // Center-align text
-    fontSize: 10, // Adjust the font size as needed
+    position: 'absolute', 
+    width: '100%', 
+    textAlign: 'center', 
+    fontSize: 10, 
     color: '#FEC260',
     fontFamily: 'Roboto-Regular',
   },
@@ -278,7 +268,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   flatListContentContainer: {
-    paddingBottom: 20, // Add padding at the bottom to prevent content from being cut off
+    paddingBottom: 20, 
   },
   genreListContainer: {
     marginTop: 5,
@@ -306,7 +296,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 50,
     height: 50,
-    borderRadius: 25, // Circular shape
+    borderRadius: 25, 
     marginRight: 10,
   },
   nickname: {
