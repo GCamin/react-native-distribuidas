@@ -24,7 +24,6 @@ import CalificacionIconAsc from '../../assets/svg/Calificacion-icon-asc.svg';
 import CalificacionIconDesc from '../../assets/svg/Calificacion-icon-desc.svg';
 import VolverIcon from '../../assets/svg/Volver-icon.svg';
 import CustomSearchBar from './CustomSearchBar';
-import CustomSearchBar2 from './CustomSearchBar2';
 import {useApiSearchQuery} from '../../redux/moviesApi';
 import {useSelector} from 'react-redux';
 
@@ -36,6 +35,7 @@ type Item = {
   description: string;
   year: string;
   duration: string;
+  rating: number;
   image: any;
 };
 
@@ -47,6 +47,7 @@ const getServerData = data => {
       description: movie.synopsis,
       year: movie.year,
       duration: movie.duration,
+      rating: movie.rating,
       image:
         movie.posterPic ||
         'https://i.pinimg.com/originals/2d/a9/a1/2da9a1d58af1edb4a4168f013a3d9f9f.jpg',
@@ -68,6 +69,7 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
     {skip: !searchValue},
   );
   const [dateOrder, setDateOrder] = useState('');
+  const [rateOrder, setRateOrder] = useState ('');
   const [movies, setMovies] = useState(getServerData(data));
 
   const totalResults = data?.totalResults;
@@ -102,8 +104,21 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
     }
   };
   const handlePress_Calificacion = () => {
-    // debo cambiar a boton fechaIconDesc (de fecha mas nueva a mas vieja) y si toco de nuevo a boton fechaIconAsc (de fecha mas vieja a mas nueva)
+    // debo cambiar a boton CalificacionIconDesc (de calificaion mas alta a mas baja) y si toco de nuevo a boton CalificacionIconAsc (de calificacion mas baja a mas alta)
     // ordenar el listado de imagenes y dejarlo fijo (que no se pueda scrollear mas)
+    const newOrder = handleOrderChange(rateOrder);
+    if (newOrder === 'desc') {
+      const sortedDesc = [...movies].sort((a, b) => b.rating - a.rating);
+      setMovies(sortedDesc);
+    }
+    if (newOrder === 'asc') {
+      const sortedAsc = [...movies].sort((a, b) => a.rating - b.rating);
+      setMovies(sortedAsc);
+    }
+    if (!newOrder) {
+      setMovies(getServerData(data));
+    }
+    setRateOrder(newOrder);
   };
 
   const handlePress_Fecha = () => {
@@ -163,7 +178,7 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
           <View style={styles.descriptionContainer}>
             <Text
               style={styles.description}
-              numberOfLines={6}
+              numberOfLines={4}
               ellipsizeMode="tail">
               {item.description}
             </Text>
@@ -182,7 +197,7 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
         </View>
         <View style={styles.anioDuracionWrapper}>
           <AnioDuracion style={styles.anioDuracion} />
-          <Text style={styles.anioDuracionText}>{item.duration}</Text>
+          <Text style={styles.anioDuracionText}>{item.duration} min</Text>
         </View>
       </View>
     </View>
@@ -226,8 +241,14 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.iconsContainer}>
-          <TouchableOpacity>
-            <CalificacionIcon />
+          <TouchableOpacity onPress={handlePress_Calificacion}>
+            {rateOrder === '' ? (
+              <CalificacionIcon />
+            ) : rateOrder === 'desc' ? (
+              <CalificacionIconDesc />
+            ) : (
+              <CalificacionIconAsc />
+            )}
           </TouchableOpacity>
         </View>
         <Modal isVisible={isConnectionModalVisible} backdropOpacity={0.5} style={styles.modal}>
@@ -246,7 +267,7 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
           </View>
         </Modal>
       </View>
-      {(isLoading || isFetching) && page === 1 && <Text>Cargando...</Text>}
+      {(isLoading || isFetching) && page === 1 && <Text style={styles.textCharging}>Cargando...</Text>}
       {error && <Text>Error: {error?.error}</Text>}
       {movies?.length ? (
         <FlatList
@@ -257,7 +278,7 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
           onEndReachedThreshold={0.5}
           onEndReached={handleLoadMore}
           ListFooterComponent={
-            isFetching && page > 1 ? <Text>Loading more...</Text> : null
+            isFetching && page > 1 ? <Text style={styles.textCharging}>Cargando mas...</Text> : null
           }
         />
       ) : null}
@@ -293,6 +314,10 @@ const styles = StyleSheet.create({
     textShadowOffset: {width: 2, height: 2},
     marginLeft: 17,
     marginBottom: 10,
+  },
+  textCharging: {
+    borderColor: '#FEC260',
+    marginLeft: 15
   },
   textContainer: {
     flex: 5,

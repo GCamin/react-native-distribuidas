@@ -9,13 +9,11 @@ import {
   ImageBackground,
   FlatList,
   ListRenderItem,
-  Pressable,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation/Navigation'; // Adjust the path if necessary
 import PlayButton from '../../assets/svg/PlayHome.svg'; // Direct import of SVG
 import AnioDuracion from '../../assets/svg/Anio-Duracion.svg';
-import Generos from '../../assets/svg/Generos.svg';
 import FavIcon from '../../assets/svg/Fav-icon.svg';
 import SearchIcon from '../../assets/svg/Search-icon.svg';
 import {useHomeApiQuery} from '../../redux/moviesApi';
@@ -36,25 +34,25 @@ type Item = {
 const peliculas: Item[] = [];
 
 const generos = [
-  {id: 'Accion', genero: 'Acción'},
-  {id: 'Aventura', genero: 'Aventura'},
-  {id: 'Animación', genero: 'Animacion'},
-  {id: 'Comedia', genero: 'Comedia'},
-  {id: 'Crimen', genero: 'Crimen'},
-  {id: 'Documental', genero: 'Documenta'},
-  {id: 'Drama', genero: 'Drama'},
-  {id: 'Familia', genero: 'Familia'},
-  {id: 'Fantasía', genero: 'Fantasia'},
-  {id: 'Historia', genero: 'Historia'},
-  {id: 'Terror', genero: 'Terror'},
-  {id: 'Música', genero: 'Musica'},
-  {id: 'Misterio', genero: 'Misterio'},
-  {id: 'Romance', genero: 'Romance'},
-  {id: 'Ciencia Ficción', genero: 'Sci-Fi'},
-  {id: 'Pelicula de TV', genero: 'TV Show'},
-  {id: 'Suspense', genero: 'Suspenso'},
-  {id: 'Bélica', genero: 'Guerra'},
-  {id: 'Western', genero: 'Oeste'},
+  {id: '28', genero: 'Acción'},
+  {id: '12', genero: 'Aventura'},
+  {id: '16', genero: 'Animación'},
+  {id: '35', genero: 'Comedia'},
+  {id: '80', genero: 'Crimen'},
+  {id: '99', genero: 'Documental'},
+  {id: '18', genero: 'Drama'},
+  {id: '10751', genero: 'Familia'},
+  {id: '14', genero: 'Fantasía'},
+  {id: '36', genero: 'Historia'},
+  {id: '27', genero: 'Terror'},
+  {id: '10402', genero: 'Música'},
+  {id: '9648', genero: 'Misterio'},
+  {id: '10749', genero: 'Romance'},
+  {id: '878', genero: 'Sci-Fi'},
+  {id: '10770', genero: 'TV Show'},
+  {id: '53', genero: 'Suspenso'},
+  {id: '10752', genero: 'Guerra'},
+  {id: '37', genero: 'Oeste'},
 ];
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
@@ -115,7 +113,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           <View style={styles.descriptionContainer}>
             <Text
               style={styles.description}
-              numberOfLines={6}
+              numberOfLines={5}
               ellipsizeMode="tail">
               {item.description}
             </Text>
@@ -198,8 +196,8 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           )}
         />
       </View>
-      <Text style={styles.titleHome}>Ultimos Trailers</Text>
-      {isLoading || (isFetching && page === 1 && <Text>Cargando...</Text>)}
+      <Text style={styles.titleHome}>Últimos Trailers</Text>
+      {isLoading || (isFetching && page === 1 && <Text style={styles.textCharging}>Cargando...</Text>)}
       {mappedMovies?.length ? (
         <FlatList
           data={mappedMovies}
@@ -209,7 +207,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           onEndReachedThreshold={0.5}
           onEndReached={handleLoadMore}
           ListFooterComponent={
-            isFetching && page > 1 ? <Text>Cargando más...</Text> : null
+            isFetching && page > 1 ? <Text style={styles.textCharging}>Cargando más...</Text> : null
           }
         />
       ) : null}
@@ -219,13 +217,13 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20, // Ensure no more than 20px spacing between containers
+    marginBottom: 20, 
   },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginVertical: 10,
-    paddingHorizontal: 20, // Add padding for better alignment
+    paddingHorizontal: 20, 
   },
   image: {
     width: 110,
@@ -245,6 +243,10 @@ const styles = StyleSheet.create({
     textShadowOffset: {width: 2, height: 2},
     marginLeft: 17,
     marginBottom: 10,
+  },
+  textCharging: {
+    color: 'FAFAFA',
+    marginLeft: 15
   },
   textContainer: {
     flex: 5,
