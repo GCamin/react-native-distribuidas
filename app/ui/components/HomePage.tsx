@@ -132,7 +132,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         </View>
         <View style={styles.anioDuracionWrapper}>
           <AnioDuracion style={styles.anioDuracion} />
-          <Text style={styles.anioDuracionText}>{item.duration}</Text>
+          <Text style={styles.anioDuracionText}>{item.duration+" m"}</Text>
         </View>
       </View>
     </View>
@@ -258,7 +258,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FEC260',
     fontFamily: 'Roboto-Regular',
-    alignSelf: 'flex-start',
+    paddingRight: 20,
+    //alignSelf: 'flex-start',
   },
   descriptionContainer: {
     flex: 1,
