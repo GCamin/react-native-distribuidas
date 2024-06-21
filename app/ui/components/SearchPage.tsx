@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,12 @@ import {
   FlatList,
   ListRenderItem,
 } from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import NetInfo from '@react-native-community/netinfo';
 import Modal from 'react-native-modal';
-import {BlurView} from '@react-native-community/blur';
-import {RootStackParamList} from '../../navigation/Navigation'; // Adjust the path if necessary
-import PlayButton from '../../assets/svg/PlayHome.svg'; // Direct import of SVG
+import { BlurView } from '@react-native-community/blur';
+import { RootStackParamList } from '../../navigation/Navigation';
+import PlayButton from '../../assets/svg/PlayHome.svg';
 import AnioDuracion from '../../assets/svg/Anio-Duracion.svg';
 import FechaIcon from '../../assets/svg/Fecha-icon.svg';
 import FechaIconAsc from '../../assets/svg/Fecha-icon-asc.svg';
@@ -24,8 +24,8 @@ import CalificacionIconAsc from '../../assets/svg/Calificacion-icon-asc.svg';
 import CalificacionIconDesc from '../../assets/svg/Calificacion-icon-desc.svg';
 import VolverIcon from '../../assets/svg/Volver-icon.svg';
 import CustomSearchBar from './CustomSearchBar';
-import {useApiSearchQuery} from '../../redux/moviesApi';
-import {useSelector} from 'react-redux';
+import { useApiSearchQuery } from '../../redux/moviesApi';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
 
@@ -55,27 +55,35 @@ const getServerData = data => {
   );
 };
 
-const SearchScreen: React.FC<Props> = ({navigation}) => {
-  //const [data, setData] = useState<Item[]>(initialData);
+const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const [isConnectionModalVisible, setConnectionModalVisible] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean>(true);
   const [searchValue, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const {data, error, isLoading, isFetching} = useApiSearchQuery(
+  const { data, error, isLoading, isFetching } = useApiSearchQuery(
     {
       search: searchValue,
       page,
     },
-    {skip: !searchValue},
+    { skip: !searchValue },
   );
   const [dateOrder, setDateOrder] = useState('');
-  const [rateOrder, setRateOrder] = useState ('');
+  const [rateOrder, setRateOrder] = useState('');
   const [movies, setMovies] = useState(getServerData(data));
 
   const totalResults = data?.totalResults;
   const handleSearch = (value: string) => {
+    handleClear();
     setSearch(value);
     setPage(1);
+    if (!value) {
+      setMovies([]);
+    }
+  };
+
+  const handleClear = () => {
+    setSearch('');
+    setMovies([]);
   };
 
   const handleLoadMore = () => {
@@ -103,9 +111,8 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
         return '';
     }
   };
+
   const handlePress_Calificacion = () => {
-    // debo cambiar a boton CalificacionIconDesc (de calificaion mas alta a mas baja) y si toco de nuevo a boton CalificacionIconAsc (de calificacion mas baja a mas alta)
-    // ordenar el listado de imagenes y dejarlo fijo (que no se pueda scrollear mas)
     const newOrder = handleOrderChange(rateOrder);
     if (newOrder === 'desc') {
       const sortedDesc = [...movies].sort((a, b) => b.rating - a.rating);
@@ -122,8 +129,6 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const handlePress_Fecha = () => {
-    // debo cambiar a boton fechaIconDesc (de fecha mas nueva a mas vieja) y si toco de nuevo a boton fechaIconAsc (de fecha mas vieja a mas nueva)
-    // ordenar el listado de imagenes y dejarlo fijo (que no se pueda scrollear mas)
     const newOrder = handleOrderChange(dateOrder);
     if (newOrder === 'desc') {
       const sortedDesc = [...movies].sort((a, b) => b.year - a.year);
@@ -149,30 +154,38 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
       setIsConnected(connected);
       clearTimeout(timeoutId);
       if (!connected) {
-        // Si no hay conexión, establecer un timeout para mostrar el modal después de 3 segundos
         timeoutId = setTimeout(() => {
           setConnectionModalVisible(true);
         }, 50);
       } else {
-        // Si hay conexión, ocultar el modal
         setConnectionModalVisible(false);
       }
     });
 
-    // Verificar el estado de la conexión al cargar el componente
     NetInfo.fetch().then(state => {
       setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
     });
     return () => {
-      unsubscribe(); // Limpia la suscripción al desmontar el componente
-      clearTimeout(timeoutId); // Limpiar el timeout al desmontar el componente
+      unsubscribe();
+      clearTimeout(timeoutId);
     };
   }, [data]);
 
-  const renderItem: ListRenderItem<Item> = ({item}) => (
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setMovies([]);
+        setSearch('');
+        setDateOrder('');
+        setRateOrder('');
+      };
+    }, [])
+  );
+
+  const renderItem: ListRenderItem<Item> = ({ item }) => (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Image source={{uri: item.image}} style={styles.image} />
+        <Image source={{ uri: item.image }} style={styles.image} />
         <View style={styles.textContainer}>
           <Text style={styles.title}>{item.title}</Text>
           <View style={styles.descriptionContainer}>
@@ -226,7 +239,7 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
         </TouchableOpacity>
       </View>
       <View style={styles.searchContainer}>
-        <CustomSearchBar onSearch={handleSearch} />
+      <CustomSearchBar onSearch={handleSearch} onClear={handleClear} />
       </View>
       <View style={styles.middleFrame}>
         <View style={styles.iconsContainer}>
@@ -269,7 +282,12 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
       </View>
       {(isLoading || isFetching) && page === 1 && <Text style={styles.textCharging}>Cargando...</Text>}
       {error && <Text>Error: {error?.error}</Text>}
-      {movies?.length ? (
+      {searchValue && !isLoading && !movies.length ? (
+        <View style={styles.noResultsContainer}>
+          <Image source={require('../../assets/images/sad-face.png')} style={styles.noResultsImage} />
+          <Text style={styles.noResultsText}>No encontramos lo que buscas, prueba con otra búsqueda</Text>
+        </View>
+      ) : (
         <FlatList
           data={movies}
           renderItem={renderItem}
@@ -278,10 +296,10 @@ const SearchScreen: React.FC<Props> = ({navigation}) => {
           onEndReachedThreshold={0.5}
           onEndReached={handleLoadMore}
           ListFooterComponent={
-            isFetching && page > 1 ? <Text style={styles.textCharging}>Cargando mas...</Text> : null
+            isFetching && page > 1 ? <Text style={styles.textCharging}>Cargando más...</Text> : null
           }
         />
-      ) : null}
+      )}
     </ImageBackground>
   );
 };
@@ -518,6 +536,22 @@ const styles = StyleSheet.create({
     color: '#101010',
     textAlign: 'center',
     fontSize: 16,
+  },
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    bottom: 150,
+  },
+  noResultsImage: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+  },
+  noResultsText: {
+    fontSize: 18,
+    color: '#FEC260',
+    textAlign: 'center',
   },
 });
 
