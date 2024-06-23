@@ -24,7 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
 const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
   const userId = useSelector(state => state?.user?.id);
-  const {data, isLoading, refetch} = useUserInfoQuery(userId);
+  const { data, isLoading, refetch } = useUserInfoQuery(userId);
   const dispatch = useDispatch();
   const [updateUser, { isLoading: isUpdating, error }] = useUpdateUserMutation();
   const profileImageUrl = 'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
@@ -87,8 +87,8 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
   const selectImage = () => {
     launchImageLibrary({}, (response) => {
       if (response.assets && response.assets.length > 0) {
-        setProfileImage({ uri: response.assets[0].uri });
-        refetch();
+        const imageUri = response.assets[0].uri;
+        setProfileImage({ uri: imageUri });
       }
     });
   };
@@ -111,23 +111,20 @@ const ProfilePageEdit: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleSaveChanges = async () => {
-    if (validateFields())
-      // Save changes logic here
+    if (validateFields()) {
       try {
-        const userData = { nickName: nickname, name: fullName, email };
-        updateUser({ userId, userData }).unwrap();
+        const userData = { nickName: nickname, name: fullName, email, profileImageUrl: profileImage.uri };
+        await updateUser({ userId, userData }).unwrap();
         console.log("Cambios guardados");
-
-        // Actualiza los datos en el estado global
-        dispatch(updateUserProfile(userData));
-
-        // Actualiza los datos locales
         refetch();
-        //navigation.goBack();
+        dispatch(updateUserProfile(userData));
+        refetch();
+        navigation.goBack();
       } catch (error) {
         console.error("Error al actualizar el perfil:", error);
       }
-    };
+    }
+  };
 
   return (
     <ImageBackground

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../app/navigation/Navigation.tsx';
 import {
@@ -18,23 +18,27 @@ import NetInfo from '@react-native-community/netinfo';
 import {useSelector, useDispatch} from 'react-redux';
 import {useUserInfoQuery, useUserDeleteMutation} from '../../redux/profileApi.js';
 import {logOut} from '../../redux/user.js';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfilePage: React.FC<Props> = ({navigation}) => {
   const userId = useSelector(state => state?.user?.id);
-  const {data, isLoading} = useUserInfoQuery(userId);
+  const { data, isLoading, refetch } = useUserInfoQuery(userId);
   const [deleteUser, {isLoading: isDeleting, error}] = useUserDeleteMutation();
   const dispatch = useDispatch();
   const profileImageUrl =
     'https://vivolabs.es/wp-content/uploads/2022/03/perfil-mujer-vivo.png';
-  const [profileImage, setProfileImage] = useState({uri: profileImageUrl});
-  const [nickname, setNickname] = useState(data?.nickName);
-  const [fullName, setFullName] = useState(data?.name);
-  const [email, setEmail] = useState(data?.email);
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isConnectionModalVisible, setConnectionModalVisible] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean>(true);
+  const userProfile = useSelector(state => state.user);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   useEffect(() => {
     // Suscribirse a los cambios en el estado de la conexión a internet
@@ -53,7 +57,6 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
         setConnectionModalVisible(false);
       }
     });
-
     // Verificar el estado de la conexión al cargar el componente
     NetInfo.fetch().then(state => {
       setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
@@ -97,7 +100,6 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
         deleteUser(userId).unwrap();
         console.log("Perfil eliminado");
         dispatch(logOut());
-        navigation.replace("Login");
       } catch (error) {
         console.log(userId)
         console.error("Error al eliminar el perfil:", error);
@@ -124,7 +126,7 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
     <ImageBackground
       source={require('../../assets/images/Background.png')}
       style={styles.background}>
-      {isLoading && data ? (
+      {isLoading && !data ? (
         <ActivityIndicator size={'large'} />
       ) : (
         <>
@@ -145,11 +147,9 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
             <Text style={styles.title}>Mi perfil</Text>
 
             {/* Profile Picture */}
+
             <Image
-              source={{
-                uri:
-                  data.profileImageUrl || 'https://i.stack.imgur.com/l60Hf.png',
-              }}
+              source={{ uri: data?.profileImageUrl || profileImageUrl }}
               style={styles.profileImage}
             />
 
@@ -165,19 +165,17 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
               <Text style={styles.label}>Nickname:</Text>
               <TextInput
                 style={styles.userInfoText}
-                value={nickname}
-                onChangeText={setNickname}
+                value={data?.nickName || ''}
                 editable={false}
               />
               <TextInput
                 style={styles.userInfoText}
-                value={fullName}
-                onChangeText={setFullName}
+                value={data?.name || ''}
                 editable={false}
               />
               <TextInput
                 style={styles.userInfoText}
-                value={email}
+                value={data?.email || ''}
                 editable={false}
               />
             </View>
