@@ -58,8 +58,8 @@ const ProfilePage: React.FC<Props> = ({navigation}) => {
       }
     });
     // Verificar el estado de la conexión al cargar el componente
-    NetInfo.fetch().then(state => {
-      setIsConnected(state.isConnected && state.isInternetReachable !== null ? state.isInternetReachable : false);
+    NetInfo.fetch().then(userProfile => {
+      setIsConnected(userProfile.isConnected && userProfile.isInternetReachable !== null ? userProfile.isInternetReachable : false);
     });
     return () => {
       unsubscribe(); // Limpia la suscripción al desmontar el componente
